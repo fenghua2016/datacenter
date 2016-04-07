@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+	   					   http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util.xsd">
+                           
+   <!-- context:property-placeholder location="classpath:mysql.properties" /-->
+
+   
+   <bean name="platformDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+      <property name="url" value="${mysql.platform.jdbc.url}" />
+      <property name="username" value="${mysql.platform.jdbc.username}" />
+      <property name="password" value="${mysql.platform.jdbc.password}" />
+      
+      <property name="initialSize" value="0" />
+      <property name="maxActive" value="20" />
+      <property name="minIdle" value="0" />
+      <property name="maxWait" value="60000" />
+      
+      <property name="validationQuery" value="${mysql.validationQuery}" />
+      <property name="testOnBorrow" value="false" />
+      <property name="testOnReturn" value="false" />
+      <property name="testWhileIdle" value="true" />
+      
+      <property name="timeBetweenEvictionRunsMillis" value="60000" />
+      <property name="minEvictableIdleTimeMillis" value="25200000" />
+      <property name="removeAbandoned" value="true" />
+      <property name="removeAbandonedTimeout" value="1800" />
+      <property name="logAbandoned" value="true" />
+      
+      <property name="filters" value="mergeStat" />
+   </bean>
+   
+    <bean name="imServiceDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+      <property name="url" value="${mysql.imservice.jdbc.url}" />
+      <property name="username" value="${mysql.imservice.jdbc.username}" />
+      <property name="password" value="${mysql.imservice.jdbc.password}" />
+      
+      <property name="initialSize" value="0" />
+      <property name="maxActive" value="20" />
+      <property name="minIdle" value="0" />
+      <property name="maxWait" value="60000" />
+      
+      <property name="validationQuery" value="${mysql.validationQuery}" />
+      <property name="testOnBorrow" value="false" />
+      <property name="testOnReturn" value="false" />
+      <property name="testWhileIdle" value="true" />
+      
+      <property name="timeBetweenEvictionRunsMillis" value="60000" />
+      <property name="minEvictableIdleTimeMillis" value="25200000" />
+      <property name="removeAbandoned" value="true" />
+      <property name="removeAbandonedTimeout" value="1800" />
+      <property name="logAbandoned" value="true" />
+      
+      <property name="filters" value="mergeStat" />
+   </bean>
+   
+   <util:map id="dataSourcePathNameMap">
+     <entry key="mysql.platform" value="platformDataSource"/>
+     <entry key="mysql.im" value="imServiceDataSource" />
+   </util:map>
+   
+   <bean id="multipleDataSource" class="com.yfh.remoting.datasource.aop.MultipleDataSource">
+      <property name="defaultTargetDataSource" ref="platformDataSource" />
+      <property name="targetDataSources">
+        <map key-type="java.lang.String">
+           <entry key="platformDataSource" value-ref="platformDataSource"/>
+           <entry key="imServiceDataSource" value-ref="imServiceDataSource" />
+        </map>
+      </property>
+   </bean>
+
+   <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+     <property name="configLocation" value="classpath:mybatis-config.xml" />
+     <property name="dataSource" ref="multipleDataSource" />
+     <property name="mapperLocations" value="classpath*:com/yfh/store/mysql/**/*Mapper.xml" />
+   </bean>
+   <bean id="simpleSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+     <constructor-arg index="0" ref="sqlSessionFactory" />
+     <constructor-arg index="1" value="SIMPLE" />
+   </bean>
+   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+     <property name="basePackage" value="com.yfh.store.mysql" />
+     <property name="sqlSessionTemplateBeanName" value="simpleSqlSessionTemplate" />
+   </bean>
+    
+   <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+     <property name="dataSource" ref="multipleDataSource" />
+   </bean>  
+   
+   <tx:annotation-driven transaction-manager="transactionManager" />  
+    
+   <tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+     <tx:attributes>
+       <tx:method name="add*" propagation="REQUIRED" />
+       <tx:method name="append*" propagation="REQUIRED" />
+       <tx:method name="insert*" propagation="REQUIRED" />
+       <tx:method name="save*" propagation="REQUIRED" />
+       <tx:method name="update*" propagation="REQUIRED" />
+       <tx:method name="modify*" propagation="REQUIRED" />
+       <tx:method name="edit*" propagation="REQUIRED" />
+       <tx:method name="delete*" propagation="REQUIRED" />
+       <tx:method name="remove*" propagation="REQUIRED" />
+       <tx:method name="repair" propagation="REQUIRED" />
+       <tx:method name="delAndRepair" propagation="REQUIRED" />
+     
+       <tx:method name="get*" propagation="SUPPORTS" />
+       <tx:method name="find*" propagation="SUPPORTS" />
+       <tx:method name="load*" propagation="SUPPORTS" />
+       <tx:method name="search*" propagation="SUPPORTS" />
+       <tx:method name="datagrid*" propagation="SUPPORTS" />
+     
+       <tx:method name="*" propagation="SUPPORTS" />
+     </tx:attributes>
+   </tx:advice>
+   
+   <aop:config>
+     <aop:pointcut id="transactionPointcut"  expression="execution(* com.yfh.store.mysql..impl.*(..))" />
+     <aop:advisor pointcut-ref="transactionPointcut" advice-ref="transactionAdvice" />
+   </aop:config>
+   
+   <bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor" />
+   <bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut" scope="prototype">
+     <property name="patterns">
+       <list>
+         <value>com.yfh.store..service.*</value>
+       </list>
+     </property>
+   </bean>
+   
+   <aop:config>
+     <aop:advisor advice-ref="druid-stat-interceptor" pointcut-ref="druid-stat-pointcut" />
+   </aop:config>
+   
+   <!-- multiple datasource AOP -->
+   <bean id="multipleDataSourceInterceptor" class="com.yfh.remoting.datasource.aop.MultipleDataSourceInterceptor" />
+   <aop:config>
+      <aop:aspect ref="multipleDataSourceInterceptor" order="-1000">
+         <aop:pointcut id="datastoreApiPointcut" expression="execution(* com.yfh.store.common.CommonOperation.*(..)) || execution(* com.yfh.store.mysql..*Mapper.*(..))" />
+         <aop:before method="dynamicSetDataSource" pointcut-ref="datastoreApiPointcut" />
+      </aop:aspect>
+   </aop:config>
+</beans>

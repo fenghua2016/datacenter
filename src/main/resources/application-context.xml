@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+	   					   http://www.springframework.org/schema/mvc
+                           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd">
+                            
+    <context:component-scan base-package="com.yfh.remoting" />   
+    <context:component-scan base-package="com.yfh.store" />  
+
+    <!-- aop:aspectj-autoproxy / -->
+    
+    <!-- public common beans -->                                   
+    <bean id="fstSerializer" class="com.yfh.common.Serialization.FSTSerializer" />
+    <bean id="jsonSerializer" class="com.yfh.common.Serialization.JsonSerializer" scope="prototype"/>
+    
+    <!-- service beans -->
+    <bean id="imMsgStoreServiceImpl" class="com.yfh.remoting.service.impl.IMMsgStoreServiceImpl" />
+    <bean id="platformOperationServiceImpl" class="com.yfh.remoting.duplex.service.impl.PlatformOperationServiceImpl" />
+    <bean id="platformLoadDataServiceImpl" class="com.yfh.remoting.duplex.service.impl.PlatformLoadDataServiceImpl" /> 
+    <bean id="platformDataRedisCacheServiceImpl" class="com.yfh.remoting.duplex.service.impl.PlatformDataRedisCacheServiceImpl" />
+    
+    <bean id="instantOperationServiceImpl" class="com.yfh.remoting.duplex.service.impl.InstantOperationServiceImpl" />
+    
+    
+    <!-- properties files -->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>redis.properties</value>
+                <value>mysql.properties</value>
+            </list>
+        </property>
+    </bean>
+    
+    <import resource="mongodb-context.xml" />
+    <import resource="rmi-service-context.xml" />
+    <import resource="mybatis-context.xml"/>
+    <import resource="redis-cluster-context.xml"/>
+    <!-- IM message store ActiveMQ Listener -->
+    <import resource="activemq-context.xml" />
+      
+</beans>

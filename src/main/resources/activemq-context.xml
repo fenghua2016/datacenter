@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/jms
+        http://www.springframework.org/schema/jms/spring-jms-4.0.xsd">
+    
+   <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+	   <property name="brokerURL" value="tcp://192.168.1.8:61616" />
+	   <!--  property name="userName" value="admin" / -->
+	   <!--  property name="password" value="admin" / -->
+	</bean>
+
+	<bean id="mqCachingConnectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<constructor-arg ref="amqConnectionFactory" />
+		<property name="sessionCacheSize" value="20" />
+	</bean>
+   
+   <!--  &&&&&&&&&&&&&&&  IM　Store　ActiveMQ　Setting　&&&&&&&&&&&&&&&&&&& -->
+   <bean id="imMessageQueue" class="org.apache.activemq.command.ActiveMQQueue">
+      <constructor-arg index="0" value="com.yfh.jobs.queue" />
+   </bean>
+ 
+   <bean id="imMessageTopic" class="org.apache.activemq.command.ActiveMQTopic">
+      <constructor-arg index="0" value="com.yfh.jobs.topic" />
+   </bean>
+   
+   <bean id="imMessageConverter" class="com.yfh.remoting.queue.client.GenericMQMessageConverter" />
+   
+   <bean id="jobMessageTopicTemplate" class="org.springframework.jms.core.JmsTemplate">
+      <constructor-arg ref="mqCachingConnectionFactory" />
+      <property name="defaultDestination" ref="imMessageTopic" />
+      <property name="messageConverter" ref="imMessageConverter" />
+      <property name="receiveTimeout" value="3000" />
+   </bean>
+   
+   <bean id="imMessageQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+      <constructor-arg ref="mqCachingConnectionFactory" />
+      <property name="defaultDestination" ref="imMessageQueue" />
+      <property name="messageConverter" ref="imMessageConverter" />
+      <property name="receiveTimeout" value="3000" />
+   </bean>
+   
+   <!-- Message Listener -->
+   <bean id="imSubmitListener" class="com.yfh.remoting.mq.IMMQMsgListener"/>
+   
+   <bean id="imMessageListener" class="com.yfh.remoting.queue.client.MsgActiveMQListener">
+      <constructor-arg ref="imMessageConverter" />
+      <constructor-arg ref="imSubmitListener" />
+   </bean>
+   
+   <bean id="imMessageListenerAdapter" class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
+      <property name="delegate" ref="imMessageListener" />
+      <property name="defaultListenerMethod" value="onMessage" />
+      <property name="messageConverter" ref="imMessageConverter" />
+   </bean>
+   
+   <bean id="imMsgListenerAdapterContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+      <property name="connectionFactory" ref="mqCachingConnectionFactory" />
+      <!--1. set destintion in code or set in here -->
+      <property name="destination" ref="imMessageQueue" />
+      <property name="messageListener" ref="imMessageListenerAdapter" />
+   </bean>
+   
+   <!-- receiver -->
+   <bean id="imMessageReceiver" class="com.yfh.remoting.queue.client.MsgActiveMQReceiver">
+     <!--3. set destintion in code or set in here -->
+     <property name="jmsTemplate" ref="imMessageQueueTemplate" />
+   </bean>
+   
+
+</beans>

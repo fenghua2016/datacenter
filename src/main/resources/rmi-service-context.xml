@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+	   					   http://www.springframework.org/schema/mvc
+                           http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+                           
+    <bean id="imMsgStoreRMIService" class="org.springframework.remoting.rmi.RmiServiceExporter">
+        <property name="serviceName" value="imMsgStoreService" />
+        <property name="service" ref="imMsgStoreServiceImpl" />
+        <property name="serviceInterface" value="com.yfh.remoting.service.IMMsgStoreService"/>
+        <!-- property name="registryHost" value="192.168.1.2" /-->
+        <property name="registryPort" value="1899" />
+        <property name="servicePort" value="1999" />     
+    </bean>
+    
+    <bean id="platformOperationRMIService" class="org.springframework.remoting.rmi.RmiServiceExporter">
+        <property name="serviceName" value="platformOperationService" />
+        <property name="service" ref="platformOperationServiceImpl" />
+        <property name="serviceInterface" value="com.yfh.store.mysql.platform.service.PlatformOperationService"/>
+        <!-- property name="registryHost" value="192.168.1.2" /-->
+        <property name="registryPort" value="1899" />
+        <property name="servicePort" value="1999" />     
+    </bean>
+    
+    <bean id="PlatformDataCacheRMIService" class="org.springframework.remoting.rmi.RmiServiceExporter">
+        <property name="serviceName" value="platformDataCacheService" />
+        <property name="service" ref="platformDataRedisCacheServiceImpl" />
+        <property name="serviceInterface" value="com.yfh.remoting.service.PlatformDataCacheService"/>
+        <!-- property name="registryHost" value="192.168.1.2" /-->
+        <property name="registryPort" value="1899" />
+        <property name="servicePort" value="1999" />     
+    </bean>
+    
+     <bean id="instantOperationRMIService" class="org.springframework.remoting.rmi.RmiServiceExporter">
+        <property name="serviceName" value="instantOperationService" />
+        <property name="service" ref="instantOperationServiceImpl" />
+        <property name="serviceInterface" value="com.yfh.store.mysql.im.service.InstantOperationService"/>
+        <!-- property name="registryHost" value="192.168.1.2" /-->
+        <property name="registryPort" value="1899" />
+        <property name="servicePort" value="1999" />     
+    </bean>
+</beans>
