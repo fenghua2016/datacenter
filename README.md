@@ -1,4 +1,4 @@
-ataCenter Prototype
+DataCenter Prototype
 =======================
 
 Provide a simple usage for startup  data distribution, combines mybatis, spring/spring cache, ActiveMq, NSQ, mongodb, redis, mysql. need set up  mongodb/Redis/mysql cluster firstly. maybe start your own project base on this. hehe  
